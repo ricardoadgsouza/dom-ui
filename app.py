@@ -17,6 +17,7 @@ def limpar_html_completo(html):
         return f"<p><b>Erro ao renderizar conteúdo:</b> {e}</p>"
 
 # --- Carregar edições válidas ---
+@st.cache_data
 def carregar_edicoes_validas(pasta="data"):
     edicoes = {}
     for nome_arquivo in sorted(os.listdir(pasta)):
