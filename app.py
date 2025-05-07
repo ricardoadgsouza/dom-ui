@@ -1,0 +1,98 @@
+import os
+import json
+import re
+import streamlit as st
+import pandas as pd
+from bs4 import BeautifulSoup
+
+# --- Função para limpar HTML ---
+def limpar_html_completo(html):
+    try:
+        soup = BeautifulSoup(html, "html.parser")
+        texto_formatado = soup.decode(formatter="html")
+        texto_formatado = texto_formatado.replace("\\n", "<br>")
+        texto_formatado = re.sub(r'[\ud800-\udfff]', '', texto_formatado)
+        return texto_formatado
+    except Exception as e:
+        return f"<p><b>Erro ao renderizar conteúdo:</b> {e}</p>"
+
+# --- Carregar edições válidas ---
+def carregar_edicoes_validas(pasta="data"):
+    edicoes = {}
+    for nome_arquivo in sorted(os.listdir(pasta)):
+        if nome_arquivo.endswith(".json"):
+            caminho = os.path.join(pasta, nome_arquivo)
+            print(f"📄 Verificando: {nome_arquivo}")
+            try:
+                with open(caminho, encoding="utf-8") as f:
+                    data = json.load(f)
+
+                edicoes_ordinarias = data.get("edicoes_ordinarias_exclusivas")
+
+                if not edicoes_ordinarias:
+                    print("⛔ 'edicoes_ordinarias_exclusivas' ausente ou vazia.")
+                    continue
+
+                if isinstance(edicoes_ordinarias, list):
+                    for i, item in enumerate(edicoes_ordinarias):
+                        print(f"🔍 Item {i}: {type(item)}")
+                        if isinstance(item, dict) and "atos" in item and item["atos"]:
+                            match = re.search(r'(\d{4})_(\d{2})_(\d{2})_1600_2359', nome_arquivo)
+                            if match:
+                                data_str = f"{match.group(1)}/{match.group(2)}/{match.group(3)}"
+                                edicoes[data_str] = item["atos"]
+                                print(f"✅ Ato válido para {data_str}")
+                            break
+                        else:
+                            print(f"⚠️ Item inválido ou sem atos.")
+                else:
+                    print("⚠️ edicoes_ordinarias_exclusivas não é lista.")
+            except Exception as e:
+                print(f"[!] Erro ao processar {nome_arquivo}: {e}")
+    return edicoes
+
+# --- Interface Streamlit ---
+st.set_page_config(layout="wide")
+st.title("Diário Oficial - Florianópolis")
+
+edicoes = carregar_edicoes_validas()
+
+if not edicoes:
+    st.warning("⚠️ Nenhuma edição do DOM de Florianópolis disponível na pasta data.")
+    st.stop()
+
+with st.sidebar:
+    st.markdown("### Filtros")
+    palavra_chave = st.text_input("Buscar palavra-chave no título:")
+    datas_disponiveis = sorted(edicoes.keys(), reverse=True)
+    data_selecionada = st.selectbox("Escolha a data da edição:", datas_disponiveis)
+
+atos = edicoes[data_selecionada]
+df = pd.DataFrame(atos)
+df["html_formatado"] = df["texto"].apply(limpar_html_completo)
+
+entidades = ["Todas"] + sorted(df["entidade"].dropna().unique().tolist())
+categorias = ["Todas"] + sorted(df["categoria"].dropna().unique().tolist())
+
+entidade = st.sidebar.selectbox("Filtrar por Entidade:", entidades)
+categoria = st.sidebar.selectbox("Filtrar por Categoria:", categorias)
+
+df_filtrado = df.copy()
+if palavra_chave:
+    df_filtrado = df_filtrado[df_filtrado["titulo"].str.contains(palavra_chave, case=False, na=False)]
+if entidade != "Todas":
+    df_filtrado = df_filtrado[df_filtrado["entidade"] == entidade]
+if categoria != "Todas":
+    df_filtrado = df_filtrado[df_filtrado["categoria"] == categoria]
+
+if df_filtrado.empty:
+    st.warning("Nenhum resultado encontrado com os filtros aplicados.")
+else:
+    titulos = df_filtrado["titulo"].tolist()
+    indice = st.selectbox("Escolha um Ato:", range(len(titulos)), format_func=lambda i: titulos[i])
+    ato = df_filtrado.iloc[indice]
+    st.subheader(ato["titulo"])
+    st.markdown(f"**Categoria:** {ato['categoria']}  \n**Entidade:** {ato['entidade']}")
+    st.markdown("---")
+    st.markdown(ato["html_formatado"], unsafe_allow_html=True)
+    st.markdown(f"[🔗 Acessar publicação original]({ato['link']})")
