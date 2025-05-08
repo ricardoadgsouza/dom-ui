@@ -110,3 +110,11 @@ else:
     st.markdown("---")
     st.markdown(ato["html_formatado"], unsafe_allow_html=True)
     st.markdown(f"[🔗 Acessar publicação original]({ato['link']})")
+
+with st.sidebar:
+    st.markdown(
+        "---\n"
+        "<p style='font-size: 0.8em; color: gray; font-style: italic;'>⚠️ Este projeto não possui vínculo oficial com a Prefeitura de Florianópolis ou com o CIGA. "
+        "É uma ferramenta experimental com fins informativos e de transparência.</p>",
+        unsafe_allow_html=True
+    )
