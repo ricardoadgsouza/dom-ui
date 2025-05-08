@@ -12,7 +12,8 @@ def limpar_html_completo(html):
         texto_formatado = soup.decode(formatter="html")
         texto_formatado = texto_formatado.replace("\\n", "<br>")
         texto_formatado = re.sub(r'[\ud800-\udfff]', '', texto_formatado)
-        return texto_formatado
+        return f'<div style="text-align: justify">{texto_formatado}</div>'
+
     except Exception as e:
         return f"<p><b>Erro ao renderizar conteúdo:</b> {e}</p>"
 
@@ -67,9 +68,21 @@ with st.sidebar:
     palavra_chave = st.text_input("Buscar palavra-chave no título:")
     datas_disponiveis = sorted(edicoes.keys(), reverse=True)
     data_selecionada = st.selectbox("Escolha a data da edição:", datas_disponiveis)
+    buscar_todas = st.sidebar.toggle(
+        "Buscar em todas as edições ",
+        value=False,
+        help="Ao ativar, a pesquisa pode demorar consideravelmente mais, pois serão carregados todos os atos disponíveis."
+    )
 
-atos = edicoes[data_selecionada]
-df = pd.DataFrame(atos)
+if buscar_todas:
+    todos_atos = []
+    for lista_atos in reversed(edicoes.values()):
+        todos_atos.extend(lista_atos)
+    df = pd.DataFrame(todos_atos)
+else:
+    atos = edicoes[data_selecionada]
+    df = pd.DataFrame(atos)
+
 df["html_formatado"] = df["texto"].apply(limpar_html_completo)
 
 entidades = ["Todas"] + sorted(df["entidade"].dropna().unique().tolist())
