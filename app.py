@@ -55,7 +55,11 @@ def carregar_edicoes_validas(pasta="data"):
     return edicoes
 
 # --- Interface Streamlit ---
-st.set_page_config(layout="wide")
+st.set_page_config(
+    page_title="DOMSC UI",
+    page_icon="📖",
+    layout="wide"
+    )
 st.title("Diário Oficial - Florianópolis")
 
 edicoes = carregar_edicoes_validas()
