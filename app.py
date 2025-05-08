@@ -18,10 +18,11 @@ def limpar_html_completo(html):
         return f"<p><b>Erro ao renderizar conteúdo:</b> {e}</p>"
 
 # --- Carregar edições válidas ---
-@st.cache_data
+@st.cache_data(hash_funcs={list: lambda x: tuple(sorted(x))})
 def carregar_edicoes_validas(pasta="data"):
+    arquivos = sorted(os.listdir(pasta))
     edicoes = {}
-    for nome_arquivo in sorted(os.listdir(pasta)):
+    for nome_arquivo in arquivos:
         if nome_arquivo.endswith(".json"):
             caminho = os.path.join(pasta, nome_arquivo)
             print(f"📄 Verificando: {nome_arquivo}")
