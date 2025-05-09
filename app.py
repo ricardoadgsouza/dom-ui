@@ -10,18 +10,17 @@ def limpar_html_completo(html):
     try:
         soup = BeautifulSoup(html, "html.parser")
         texto_formatado = soup.decode(formatter="html")
-        texto_formatado = texto_formatado.replace("\n", "<br>")
+        texto_formatado = texto_formatado.replace("\\n", "<br>")
         texto_formatado = re.sub(r'[\ud800-\udfff]', '', texto_formatado)
         return f'<div style="text-align: justify">{texto_formatado}</div>'
-
     except Exception as e:
         return f"<p><b>Erro ao renderizar conteúdo:</b> {e}</p>"
 
 # --- Carregar edições válidas ---
 @st.cache_data(hash_funcs={list: lambda x: tuple(sorted(x))})
-def carregar_edicoes_validas(arquivos, pasta="data"):
+def carregar_edicoes_validas(pasta, arquivos):
     edicoes = {}
-    for nome_arquivo in arquivos:
+    for nome_arquivo in sorted(arquivos):
         if nome_arquivo.endswith(".json"):
             caminho = os.path.join(pasta, nome_arquivo)
             print(f"📄 Verificando: {nome_arquivo}")
@@ -30,39 +29,30 @@ def carregar_edicoes_validas(arquivos, pasta="data"):
                     data = json.load(f)
 
                 edicoes_ordinarias = data.get("edicoes_ordinarias_exclusivas")
-
                 if not edicoes_ordinarias:
                     print("⛔ 'edicoes_ordinarias_exclusivas' ausente ou vazia.")
                     continue
 
                 if isinstance(edicoes_ordinarias, list):
-                    for i, item in enumerate(edicoes_ordinarias):
-                        print(f"🔍 Item {i}: {type(item)}")
-                        if isinstance(item, dict) and "atos" in item and item["atos"]:
+                    for item in edicoes_ordinarias:
+                        if isinstance(item, dict) and item.get("atos"):
                             match = re.search(r'(\d{4})_(\d{2})_(\d{2})_1600_2359', nome_arquivo)
                             if match:
                                 data_str = f"{match.group(1)}/{match.group(2)}/{match.group(3)}"
                                 edicoes[data_str] = item["atos"]
                                 print(f"✅ Ato válido para {data_str}")
                             break
-                        else:
-                            print(f"⚠️ Item inválido ou sem atos.")
-                else:
-                    print("⚠️ edicoes_ordinarias_exclusivas não é lista.")
             except Exception as e:
                 print(f"[!] Erro ao processar {nome_arquivo}: {e}")
     return edicoes
 
 # --- Interface Streamlit ---
-st.set_page_config(
-    page_title="DOMSC UI",
-    page_icon="📖",
-    layout="wide"
-)
+st.set_page_config(layout="wide")
 st.title("Diário Oficial - Florianópolis")
 
-arquivos = sorted(os.listdir("data"))
-edicoes = carregar_edicoes_validas(arquivos)
+# --- Estado dos arquivos ---
+arquivos = os.listdir("data")
+edicoes = carregar_edicoes_validas("data", arquivos)
 
 if not edicoes:
     st.warning("⚠️ Nenhuma edição do DOM de Florianópolis disponível na pasta data.")
@@ -88,8 +78,10 @@ else:
     atos = edicoes[data_selecionada]
     df = pd.DataFrame(atos)
 
+# Formatação HTML
 df["html_formatado"] = df["texto"].apply(limpar_html_completo)
 
+# Filtros adicionais
 entidades = ["Todas"] + sorted(df["entidade"].dropna().unique().tolist())
 categorias = ["Todas"] + sorted(df["categoria"].dropna().unique().tolist())
 
