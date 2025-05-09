@@ -63,5 +63,7 @@ for link_final in links_validos:
             json.dump(conteudo, f_out, ensure_ascii=False, indent=2)
 
         print(f"💾 Extraído e salvo como: {caminho_json}")
+        print(f"🗑️ Arquivo .zip descartado (não salvo em disco)")
+
     except Exception as e:
-        print(f"[!] Falha em {link_final}: {e}")
+        print(f"[!] Falha ao processar {link_final}: {e}")

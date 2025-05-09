@@ -10,7 +10,7 @@ def limpar_html_completo(html):
     try:
         soup = BeautifulSoup(html, "html.parser")
         texto_formatado = soup.decode(formatter="html")
-        texto_formatado = texto_formatado.replace("\\n", "<br>")
+        texto_formatado = texto_formatado.replace("\n", "<br>")
         texto_formatado = re.sub(r'[\ud800-\udfff]', '', texto_formatado)
         return f'<div style="text-align: justify">{texto_formatado}</div>'
 
@@ -19,8 +19,7 @@ def limpar_html_completo(html):
 
 # --- Carregar edições válidas ---
 @st.cache_data(hash_funcs={list: lambda x: tuple(sorted(x))})
-def carregar_edicoes_validas(pasta="data"):
-    arquivos = sorted(os.listdir(pasta))
+def carregar_edicoes_validas(arquivos, pasta="data"):
     edicoes = {}
     for nome_arquivo in arquivos:
         if nome_arquivo.endswith(".json"):
@@ -59,10 +58,11 @@ st.set_page_config(
     page_title="DOMSC UI",
     page_icon="📖",
     layout="wide"
-    )
+)
 st.title("Diário Oficial - Florianópolis")
 
-edicoes = carregar_edicoes_validas()
+arquivos = sorted(os.listdir("data"))
+edicoes = carregar_edicoes_validas(arquivos)
 
 if not edicoes:
     st.warning("⚠️ Nenhuma edição do DOM de Florianópolis disponível na pasta data.")
