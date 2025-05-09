@@ -58,7 +58,7 @@ def carregar_edicoes_validas(pasta="data"):
 st.set_page_config(
     page_title="DOMSC UI",
     page_icon="📖",
-    layout="wide"
+    layout="wide")
 st.title("Diário Oficial - Florianópolis")
 
 edicoes = carregar_edicoes_validas()
