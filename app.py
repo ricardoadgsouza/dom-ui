@@ -63,9 +63,9 @@ def contem_todos_os_termos(texto, termos):
 
 if palavra_chave:
     termos = palavra_chave.strip().split()
-    cond_titulo = df_filtrado["titulo"].apply(lambda x: contem_todos_os_termos(x, termos))
+    cond_titulo = df_filtrado["titulo"].fillna("").apply(lambda x: contem_todos_os_termos(x, termos))
     if buscar_em_texto:
-        cond_texto = df_filtrado["texto"].apply(lambda x: contem_todos_os_termos(x, termos))
+        cond_texto = df_filtrado["texto"].fillna("").apply(lambda x: contem_todos_os_termos(x, termos))
         df_filtrado = df_filtrado[cond_titulo | cond_texto]
     else:
         df_filtrado = df_filtrado[cond_titulo]
@@ -99,4 +99,4 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    #---
+    #---<
