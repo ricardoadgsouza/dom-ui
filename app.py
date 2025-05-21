@@ -41,10 +41,11 @@ except Exception as e:
 with st.sidebar:
     st.markdown("### Filtros")
     palavra_chave = st.text_input("Buscar palavra-chave no título:")
-    buscar_em_texto = st.sidebar.toggle("Incluir corpo do texto na busca?", value=True)
+    buscar_em_texto = st.toggle("Incluir corpo do texto na busca?", value=True)
+    st.write("DEBUG - buscar_em_texto:", buscar_em_texto)
     datas_disponiveis = sorted(df["data_edicao"].dropna().unique().tolist(), reverse=True)
     data_selecionada = st.selectbox("Escolha a data da edição:", datas_disponiveis)
-    buscar_todas = st.sidebar.toggle("Buscar em todas as edições", value=False)
+    buscar_todas = st.toggle("Buscar em todas as edições", value=False)
 
 if not buscar_todas:
     df = df[df["data_edicao"] == data_selecionada]
@@ -63,9 +64,9 @@ def contem_todos_os_termos(texto, termos):
 
 if palavra_chave:
     termos = palavra_chave.strip().split()
-    cond_titulo = df_filtrado["titulo"].fillna("").apply(lambda x: contem_todos_os_termos(x, termos))
+    cond_titulo = df_filtrado["titulo"].astype(str).apply(lambda x: contem_todos_os_termos(x, termos))
     if buscar_em_texto:
-        cond_texto = df_filtrado["texto"].fillna("").apply(lambda x: contem_todos_os_termos(x, termos))
+        cond_texto = df_filtrado["texto"].astype(str).apply(lambda x: contem_todos_os_termos(x, termos))
         df_filtrado = df_filtrado[cond_titulo | cond_texto]
     else:
         df_filtrado = df_filtrado[cond_titulo]
@@ -99,4 +100,4 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    #---<
+    #---<</file>
