@@ -98,3 +98,5 @@ with st.sidebar:
         "É uma ferramenta experimental com fins informativos e de transparência.</p>",
         unsafe_allow_html=True
     )
+
+    #---
