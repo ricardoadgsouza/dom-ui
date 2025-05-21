@@ -42,7 +42,11 @@ with st.sidebar:
     st.markdown("### Filtros")
     palavra_chave = st.text_input("Buscar palavra-chave no título:")
     buscar_em_texto = st.sidebar.toggle("Incluir corpo do texto na busca?", value=True)
-    datas_disponiveis = sorted(df["data_edicao"].dropna().unique().tolist(), reverse=True)
+    datas_disponiveis = sorted(
+        df["data_edicao"].dropna().unique().tolist(),
+        key=lambda x: pd.to_datetime(x, dayfirst=True),
+        reverse=True
+    )
     data_selecionada = st.selectbox("Escolha a data da edição:", datas_disponiveis)
     buscar_todas = st.sidebar.toggle("Buscar em todas as edições", value=False)
 
@@ -74,6 +78,10 @@ if entidade != "Todas":
 if categoria != "Todas":
     df_filtrado = df_filtrado[df_filtrado["categoria"] == categoria]
 
+# Ordenar os resultados filtrados do mais recente ao mais antigo
+df_filtrado["data_edicao"] = pd.to_datetime(df_filtrado["data_edicao"], dayfirst=True, errors="coerce")
+df_filtrado = df_filtrado.sort_values(by="data_edicao", ascending=False)
+
 if df_filtrado.empty:
     st.warning("Nenhum resultado encontrado com os filtros aplicados.")
 else:
@@ -81,12 +89,12 @@ else:
     df_filtrado = df_filtrado.copy()
     df_filtrado["html_formatado"] = df_filtrado["texto"].apply(limpar_html_completo)
     titulos = df_filtrado["titulo"].tolist()
-    opcoes = {f"{i+1}. {titulo}": i for i, titulo in enumerate(titulos[::-1])}
+    opcoes = {f"{i+1}. {titulo}": i for i, titulo in enumerate(titulos)}
     escolha = st.selectbox("Escolha um Ato:", list(opcoes.keys()))
-    indice = len(titulos) - 1 - opcoes[escolha]
+    indice = opcoes[escolha]
     ato = df_filtrado.iloc[indice]
     st.subheader(ato["titulo"])
-    st.markdown(f"**Data:** {ato['data_edicao']}  \n**Categoria:** {ato['categoria']}  \n**Entidade:** {ato['entidade']}")
+    st.markdown(f"**Data:** {ato['data_edicao'].strftime('%d/%m/%Y')}  \n**Categoria:** {ato['categoria']}  \n**Entidade:** {ato['entidade']}")
     st.markdown("---")
     st.markdown(ato["html_formatado"], unsafe_allow_html=True)
     st.markdown(f"[🔗 Acessar publicação original]({ato['link']})")
@@ -99,4 +107,4 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    #---<</file></file>
+    #---<</file></file></file>
