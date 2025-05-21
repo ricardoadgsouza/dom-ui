@@ -93,6 +93,7 @@ try:
                     records.append(rec)
 
     df = pd.DataFrame(records)
+    df = df.drop_duplicates(subset=["titulo", "texto", "data_edicao"])
     os.makedirs("dados", exist_ok=True)
     df.to_parquet("dados/atos.parquet", index=False)
     print(f"✅ Parquet salvo com {len(df)} registros.")
