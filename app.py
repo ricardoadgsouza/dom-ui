@@ -64,11 +64,11 @@ def contem_todos_os_termos(texto, termos):
 if palavra_chave:
     termos = palavra_chave.strip().split()
     cond_titulo = df_filtrado["titulo"].astype(str).apply(lambda x: contem_todos_os_termos(x, termos))
-    if buscar_em_texto:
+    if not buscar_em_texto:
+        df_filtrado = df_filtrado[cond_titulo]
+    else:
         cond_texto = df_filtrado["texto"].astype(str).apply(lambda x: contem_todos_os_termos(x, termos))
         df_filtrado = df_filtrado[cond_titulo | cond_texto]
-    else:
-        df_filtrado = df_filtrado[cond_titulo]
 if entidade != "Todas":
     df_filtrado = df_filtrado[df_filtrado["entidade"] == entidade]
 if categoria != "Todas":
