@@ -40,12 +40,11 @@ except Exception as e:
 
 with st.sidebar:
     st.markdown("### Filtros")
+    buscar_em_texto = st.sidebar.toggle("Incluir corpo do texto na busca?", value=True)
     palavra_chave = st.text_input("Buscar palavra-chave no título:")
-    buscar_em_texto = st.toggle("Incluir corpo do texto na busca?", value=True)
-    st.write("DEBUG - buscar_em_texto:", buscar_em_texto)
     datas_disponiveis = sorted(df["data_edicao"].dropna().unique().tolist(), reverse=True)
     data_selecionada = st.selectbox("Escolha a data da edição:", datas_disponiveis)
-    buscar_todas = st.toggle("Buscar em todas as edições", value=False)
+    buscar_todas = st.sidebar.toggle("Buscar em todas as edições", value=False)
 
 if not buscar_todas:
     df = df[df["data_edicao"] == data_selecionada]
@@ -100,4 +99,4 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    #---<</file>
+    #---<</file></file>
