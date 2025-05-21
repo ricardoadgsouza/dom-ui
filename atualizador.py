@@ -67,3 +67,34 @@ for link_final in links_validos:
 
     except Exception as e:
         print(f"[!] Falha ao processar {link_final}: {e}")
+
+# Geração de arquivo Parquet otimizado (apenas Florianópolis e atos válidos)
+print("\n📦 Gerando arquivo Parquet...")
+
+try:
+    import pandas as pd
+    records = []
+
+    for nome in os.listdir("data"):
+        if nome.endswith(".json"):
+            caminho = os.path.join("data", nome)
+            with open(caminho, encoding="utf-8") as f:
+                dados = json.load(f)
+
+            for ed in dados.get("edicoes_ordinarias_exclusivas", []):
+                if not isinstance(ed, dict):
+                    continue
+                if ed.get("municipio") != "Florianópolis":
+                    continue
+                for ato in ed.get("atos", []):
+                    rec = ato.copy()
+                    rec["data_edicao"] = ed.get("data")
+                    rec["url_edicao"] = ed.get("url")
+                    records.append(rec)
+
+    df = pd.DataFrame(records)
+    os.makedirs("dados", exist_ok=True)
+    df.to_parquet("dados/atos.parquet", index=False)
+    print(f"✅ Parquet salvo com {len(df)} registros.")
+except Exception as e:
+    print(f"[!] Erro ao gerar Parquet: {e}")
