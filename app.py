@@ -30,12 +30,18 @@ st.title("Diário Oficial - Florianópolis")
 # --- Função para carregar Parquet com cache ---
 @st.cache_data
 def carregar_parquet():
-    return pd.read_parquet("dados/atos.parquet")
+    caminho = "dados/atos.parquet"
+    if not os.path.exists(caminho):
+        raise FileNotFoundError(f"Arquivo '{caminho}' não encontrado.")
+    return pd.read_parquet(caminho)
 
 try:
     df = carregar_parquet()
+except FileNotFoundError as e:
+    st.error(f"❌ {e}")
+    st.stop()
 except Exception as e:
-    st.warning(f"⚠️ Erro ao carregar o arquivo Parquet: {e}")
+    st.warning(f"⚠️ Erro inesperado ao carregar o arquivo Parquet: {e}")
     st.stop()
 
 with st.sidebar:
