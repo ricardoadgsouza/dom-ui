@@ -25,21 +25,17 @@ st.set_page_config(
     layout="wide")
 st.title("Diário Oficial - Florianópolis")
 
-CAMINHO_PARQUET = "dados/atos.parquet"
+
 
 # --- Função para carregar Parquet com cache ---
-@st.cache_data
-def carregar_parquet(caminho):
-    return pd.read_parquet(caminho)
-
-if not os.path.exists(CAMINHO_PARQUET):
-    st.error(f"❌ Arquivo '{CAMINHO_PARQUET}' não encontrado. Envie-o para a pasta correta.")
-    st.stop()
+#@st.cache_data
+def carregar_parquet():
+    return pd.read_parquet("dados/atos.parquet")
 
 try:
-    df = carregar_parquet(CAMINHO_PARQUET)
+    df = carregar_parquet()
 except Exception as e:
-    st.warning(f"⚠️ Erro inesperado ao carregar o arquivo Parquet: {e}")
+    st.warning(f"⚠️ Erro ao carregar o arquivo Parquet: {e}")
     st.stop()
 
 with st.sidebar:
@@ -111,4 +107,4 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    #---<</file></file></file></file>
+    #---<</file></file></file>
