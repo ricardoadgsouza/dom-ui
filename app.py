@@ -4,18 +4,21 @@ import re
 import streamlit as st
 import pandas as pd
 from bs4 import BeautifulSoup
+import tempfile
+from docling.document_converter import DocumentConverter
+from IPython.display import Markdown, display
 
 # --- Função para limpar HTML ---
 def limpar_html_completo(html):
     try:
-        soup = BeautifulSoup(html, "html.parser")
-        texto_formatado = soup.decode(formatter="html")
-        texto_formatado = texto_formatado.replace("\\n", "<br>")
-        texto_formatado = re.sub(r'[\ud800-\udfff]', '', texto_formatado)
-        return f'<div style="text-align: justify">{texto_formatado}</div>'
-
+        with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False) as tmp_file:
+            tmp_file.write(html)
+            temp_path = tmp_file.name
+        converter = DocumentConverter()
+        result = converter.convert(temp_path)
+        return result.document.export_to_markdown()
     except Exception as e:
-        return f"<p><b>Erro ao renderizar conteúdo:</b> {e}</p>"
+        return f"**Erro ao converter conteúdo:** {e}"
 
 
 # --- Interface Streamlit ---
@@ -41,7 +44,7 @@ except Exception as e:
 with st.sidebar:
     st.markdown("### Filtros")
     palavra_chave = st.text_input("Buscar palavra-chave no título:")
-    buscar_em_texto = st.sidebar.toggle("Incluir corpo do texto na busca?", value=True)
+    buscar_em_texto = st.sidebar.toggle("Incluir corpo do texto na busca?", value=False)
     datas_disponiveis = sorted(
         df["data_edicao"].dropna().unique().tolist(),
         key=lambda x: pd.to_datetime(x, dayfirst=True),
@@ -96,7 +99,7 @@ else:
     st.subheader(ato["titulo"])
     st.markdown(f"**Data:** {ato['data_edicao'].strftime('%d/%m/%Y')}  \n**Categoria:** {ato['categoria']}  \n**Entidade:** {ato['entidade']}")
     st.markdown("---")
-    st.markdown(ato["html_formatado"], unsafe_allow_html=True)
+    st.markdown(ato["html_formatado"], unsafe_allow_html=False)
     st.markdown(f"[🔗 Acessar publicação original]({ato['link']})")
 
 with st.sidebar:
