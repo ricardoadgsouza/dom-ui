@@ -6,7 +6,6 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import tempfile
 from docling.document_converter import DocumentConverter
-from IPython.display import Markdown, display
 
 # --- Função para limpar HTML ---
 def limpar_html_completo(html):
@@ -20,15 +19,12 @@ def limpar_html_completo(html):
     except Exception as e:
         return f"**Erro ao converter conteúdo:** {e}"
 
-
 # --- Interface Streamlit ---
 st.set_page_config(
     page_title="DOMSC UI",
     page_icon="📖",
     layout="wide")
 st.title("Diário Oficial - Florianópolis")
-
-
 
 # --- Função para carregar Parquet com cache ---
 #@st.cache_data
@@ -109,5 +105,3 @@ with st.sidebar:
         "É uma ferramenta experimental com fins informativos e de transparência.</p>",
         unsafe_allow_html=True
     )
-
-    #---<</file></file></file>
