@@ -4,20 +4,19 @@ import re
 import streamlit as st
 import pandas as pd
 from bs4 import BeautifulSoup
-import tempfile
-from docling.document_converter import DocumentConverter
 
 # --- Função para limpar HTML ---
 def limpar_html_completo(html):
     try:
-        with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False) as tmp_file:
-            tmp_file.write(html)
-            temp_path = tmp_file.name
-        converter = DocumentConverter()
-        result = converter.convert(temp_path)
-        return result.document.export_to_markdown()
+        soup = BeautifulSoup(html, "html.parser")
+        texto_formatado = soup.decode(formatter="html")
+        texto_formatado = texto_formatado.replace("\\n", "<br>")
+        texto_formatado = re.sub(r'[\ud800-\udfff]', '', texto_formatado)
+        return f'<div style="text-align: justify">{texto_formatado}</div>'
+
     except Exception as e:
-        return f"**Erro ao converter conteúdo:** {e}"
+        return f"<p><b>Erro ao renderizar conteúdo:</b> {e}</p>"
+
 
 # --- Interface Streamlit ---
 st.set_page_config(
@@ -25,6 +24,8 @@ st.set_page_config(
     page_icon="📖",
     layout="wide")
 st.title("Diário Oficial - Florianópolis")
+
+
 
 # --- Função para carregar Parquet com cache ---
 #@st.cache_data
@@ -95,7 +96,7 @@ else:
     st.subheader(ato["titulo"])
     st.markdown(f"**Data:** {ato['data_edicao'].strftime('%d/%m/%Y')}  \n**Categoria:** {ato['categoria']}  \n**Entidade:** {ato['entidade']}")
     st.markdown("---")
-    st.markdown(ato["html_formatado"], unsafe_allow_html=False)
+    st.markdown(ato["html_formatado"], unsafe_allow_html=True)
     st.markdown(f"[🔗 Acessar publicação original]({ato['link']})")
 
 with st.sidebar:
@@ -105,3 +106,5 @@ with st.sidebar:
         "É uma ferramenta experimental com fins informativos e de transparência.</p>",
         unsafe_allow_html=True
     )
+
+    #---<</file></file></file>
