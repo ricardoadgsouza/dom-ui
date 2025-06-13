@@ -4,6 +4,10 @@ import re
 import streamlit as st
 import pandas as pd
 from bs4 import BeautifulSoup
+from streamlit_pdf_viewer import pdf_viewer
+import requests
+import re
+
 
 # --- Função para limpar HTML ---
 def limpar_html_completo(html):
@@ -16,6 +20,21 @@ def limpar_html_completo(html):
 
     except Exception as e:
         return f"<p><b>Erro ao renderizar conteúdo:</b> {e}</p>"
+    
+# --- Função para baixar o pdf, caso tenha ---
+
+def get_pdf_if_exists(ato_id):
+    url = f"https://www.diariomunicipal.sc.gov.br/atos/{ato_id}"
+    response = requests.get(url, timeout=10)
+    html = response.text
+
+    match = re.search(r'https://www\.diariomunicipal\.sc\.gov\.br/arquivosbd/atos/[^"]+\.pdf', html)
+    if match:
+        pdf_url = match.group(0)
+        pdf_response = requests.get(pdf_url, timeout=10)
+        if pdf_response.status_code == 200 and pdf_response.headers["Content-Type"] == "application/pdf":
+            return pdf_response.content, pdf_url
+    return None, None
 
 
 # --- Interface Streamlit ---
@@ -96,7 +115,15 @@ else:
     st.subheader(ato["titulo"])
     st.markdown(f"**Data:** {ato['data_edicao'].strftime('%d/%m/%Y')}  \n**Categoria:** {ato['categoria']}  \n**Entidade:** {ato['entidade']}")
     st.markdown("---")
-    st.markdown(ato["html_formatado"], unsafe_allow_html=True)
+
+    pdf_bytes, pdf_url = get_pdf_if_exists(ato["codigo"])  # usa a coluna "codigo"
+
+    if pdf_bytes:
+        st.success(f"PDF encontrado: [abrir PDF]({pdf_url})")
+        pdf_viewer(input=pdf_bytes, width=10000, height=1000, annotations=[])
+    else:
+        st.markdown(ato["html_formatado"], unsafe_allow_html=True)
+    
     st.markdown(f"[🔗 Acessar publicação original]({ato['link']})")
 
 with st.sidebar:
