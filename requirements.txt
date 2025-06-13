@@ -1,5 +1,6 @@
 streamlit
-pandas
 beautifulsoup4
 requests
-docling
+re
+pandas
+streamlit-pdf-viewer
